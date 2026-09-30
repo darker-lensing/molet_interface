@@ -17,7 +17,7 @@ Before using `molet_interface`, install MOLET and its required libraries. The fo
 
 ### Platform and version
 
-These instructions target **macOS Tahoe 26.3 on Apple M5** and were prepared for the **2023 version of MOLET**.
+These instructions target **macOS Tahoe 26.3 on Apple M5** and were prepared for the **2023 version of MOLET**. They may work also on other machines and operating systems.
 
 The commands clone the upstream repositories without selecting a specific commit. To reproduce a particular 2023 version, check out the corresponding commit before applying the patches.
 
@@ -27,7 +27,7 @@ The commands clone the upstream repositories without selecting a specific commit
 - This guide assumes that MOLET is located at `~/git_repos/molet`. If you choose another location, update all corresponding paths.
 - Keep the `molet` Conda environment active whenever you build or run MOLET, including when using it through `MoletInterface`.
 
-In a new terminal session, activate the environment with:
+In a new terminal session, after the following installation, activate the environment with:
 
 ```bash
 conda activate molet
@@ -55,10 +55,11 @@ conda install -c conda-forge \
   fftw cfitsio libpng sqlite gmp mpfr jsoncpp cmake \
   libboost libboost-devel cgal gfortran \
   autoconf automake libtool pkg-config git \
+  pip matplotlib jupyter \
   -y
 ```
 
-### 3. Clone MOLET
+### 3. Clone MOLET at $HOME/git_repos/molet
 
 ```bash
 mkdir -p "$HOME/git_repos"
@@ -105,16 +106,17 @@ cd "$HOME/molet_thirdparty/src"
 git clone https://github.com/gvernard/gerlumphpp.git
 cd gerlumphpp
 
+mkdir -p maps
 autoreconf -i
 ```
 
-The `/path/to/maps` value below is a placeholder. Replace it with the intended location of your GERLUMPH maps.
+The map path below follows the folder structure adopted in this guide. Replace it with the intended location of your GERLUMPH maps.
 
 ```bash
 CXXFLAGS="-g -O2 -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION" \
 ./configure \
   --prefix="$CONDA_PREFIX" \
-  --with-map-path=/path/to/maps \
+  --with-map-path="$HOME/molet_thirdparty/src/gerlumphpp/maps" \
   --with-cfitsio="$CONDA_PREFIX" \
   --with-CCfits="$CONDA_PREFIX" \
   --with-png="$CONDA_PREFIX" \

@@ -219,3 +219,6 @@ __marimo__/
 
 # macOS Finder metadata
 .DS_Store
+
+# Notebook simulation results (including FITS, JSON, logs and plots)
+runs/

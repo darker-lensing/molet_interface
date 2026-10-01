@@ -13,13 +13,13 @@ This repository contains the Python interface. The original MOLET source code an
 
 ## Installation
 
-Create the shared Conda environment and install the Python package first, then build MOLET and its libraries. Installing the Python package does not compile MOLET; simulations require completing the backend installation below.
+Create the shared Conda environment and install the Python package first, then build MOLET and its libraries as described below.
 
 ### Platform and version
 
 These instructions target **macOS Tahoe 26.3 on Apple M5** and were prepared for the **2023 version of MOLET**. The Linux alternatives target Ubuntu/Debian with GCC.
 
-The commands clone the upstream repositories without selecting a specific commit. To reproduce a particular 2023 version, check out the corresponding commit before applying the patches.
+The commands clone the upstream repositories without selecting a specific commit. To reproduce a particular version, check out the corresponding commit before applying the patches.
 
 ### Before you begin
 

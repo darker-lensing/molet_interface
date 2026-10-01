@@ -1,0 +1,31 @@
+name: molet
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - setuptools>=77
+  - wheel
+  - numpy
+  - matplotlib
+  - astropy
+  - ipython
+  - jupyter
+  - fftw
+  - cfitsio
+  - libpng
+  - sqlite
+  - gmp
+  - mpfr
+  - jsoncpp
+  - cmake
+  - libboost
+  - libboost-devel
+  - cgal
+  - gfortran
+  - autoconf
+  - automake
+  - libtool
+  - pkg-config
+  - git
+  - jq

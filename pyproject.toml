@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "molet_interface"
+version = "0.1.0"
+description = "Python interface for configuring and running MOLET"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = ["numpy", "matplotlib", "astropy", "ipython"]
+
+[project.optional-dependencies]
+notebooks = ["jupyter"]
+
+[project.urls]
+Repository = "https://github.com/darker-lensing/molet_interface"
+MOLET = "https://github.com/gvernard/molet"
+
+[tool.setuptools]
+py-modules = ["molet_interface", "molet_auxiliary", "molet_tools", "molet_examples"]

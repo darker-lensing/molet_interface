@@ -11,13 +11,13 @@ This repository contains the Python interface. The original MOLET source code an
 - [vkl_lib](https://github.com/gvernard/vkl_lib)
 - [CCfits](https://heasarc.gsfc.nasa.gov/fitsio/CCfits/)
 
-## Install MOLET
+## Installation
 
-Before using `molet_interface`, install MOLET and its required libraries as described below. The following guide covers building the underlying MOLET software and the `molet_interface` Python package.
+Create the shared Conda environment and install the Python package first, then build MOLET and its libraries. Installing the Python package does not compile MOLET; simulations require completing the backend installation below.
 
 ### Platform and version
 
-These instructions target **macOS Tahoe 26.3 on Apple M5** and were prepared for the **2023 version of MOLET**. They may work also on other machines and operating systems.
+These instructions target **macOS Tahoe 26.3 on Apple M5** and were prepared for the **2023 version of MOLET**. The Linux alternatives target Ubuntu/Debian with GCC and have not yet been validated with a complete Linux build.
 
 The commands clone the upstream repositories without selecting a specific commit. To reproduce a particular 2023 version, check out the corresponding commit before applying the patches.
 
@@ -33,15 +33,7 @@ In a new terminal session, after the following installation, activate the enviro
 conda activate molet
 ```
 
-### 1. Install Xcode Command Line Tools
-
-```bash
-xcode-select --install
-```
-
-Wait for the installation to finish before continuing. If the tools are already installed, proceed to the next step.
-
-### 2. Create the Conda environment
+### 1. Create the Conda environment
 
 ```bash
 conda create -n molet python=3.11 -y
@@ -54,12 +46,63 @@ Install the required libraries and build tools:
 conda install -c conda-forge \
   fftw cfitsio libpng sqlite gmp mpfr jsoncpp cmake \
   libboost libboost-devel cgal gfortran \
-  autoconf automake libtool pkg-config git \
-  pip matplotlib jupyter \
+  autoconf automake libtool pkg-config git jq \
+  pip setuptools wheel numpy matplotlib astropy ipython jupyter \
   -y
 ```
 
-### 3. Clone MOLET at $HOME/git_repos/molet
+The same dependency list is available in [`environment.yml`](environment.yml). As an alternative to the commands above, from this repository run:
+
+```bash
+conda env create -f environment.yml
+conda activate molet
+```
+
+Use only one environment-creation method. `jq` is a command-line JSON processor used by MOLET's driver to read configuration values and map IDs.
+
+### 2. Install molet_interface
+
+Clone this interface repository if you have not already done so:
+
+```bash
+mkdir -p "$HOME/git_repos"
+cd "$HOME/git_repos"
+git clone https://github.com/darker-lensing/molet_interface.git
+```
+
+Then install it into the active environment:
+
+```bash
+cd "$HOME/git_repos/molet_interface"
+conda activate molet
+pip install .
+python -c "from molet_interface import MoletInterface; print('Import successful')"
+```
+
+**Source availability:** the installation metadata expects `molet_interface.py`, `molet_auxiliary.py`, `molet_tools.py`, and `molet_examples.py` together in the repository root. These modules have not yet been added to this checkout. Installation deliberately reports an error until they are present, rather than producing an empty package. The build files do not copy them from another installation.
+
+Installing the interface before MOLET is supported, but running simulations requires the remaining steps. After installation, notebooks can be opened in this environment with `jupyter notebook`.
+
+### 3. Install system build tools
+
+**macOS**
+
+```bash
+xcode-select --install
+```
+
+Wait for the installation to finish before continuing. If the tools are already installed, proceed to the next step.
+
+**Linux — Ubuntu/Debian**
+
+```bash
+sudo apt update
+sudo apt install -y build-essential curl
+```
+
+On other Linux distributions, install the equivalent compiler and build tools using the system package manager.
+
+### 4. Clone MOLET at $HOME/git_repos/molet
 
 ```bash
 mkdir -p "$HOME/git_repos"
@@ -73,7 +116,7 @@ Create a separate directory for third-party source code:
 mkdir -p "$HOME/molet_thirdparty/src"
 ```
 
-### 4. Build and install CCfits
+### 5. Build and install CCfits
 
 Download and extract CCfits 2.5:
 
@@ -89,6 +132,8 @@ cd CCfits
 
 Configure, build, and install it into the active Conda environment:
 
+**macOS**
+
 ```bash
 ./configure \
   --prefix="$CONDA_PREFIX" \
@@ -99,7 +144,19 @@ make -j4
 make install
 ```
 
-### 5. Build and install gerlumphpp
+**Linux (Bash for shell setup)**
+
+```bash
+./configure \
+  --prefix="$CONDA_PREFIX" \
+  --with-cfitsio="$CONDA_PREFIX" \
+  CXXFLAGS="-I$CONDA_PREFIX/include"
+
+make -j4
+make install
+```
+
+### 6. Build and install gerlumphpp
 
 ```bash
 cd "$HOME/molet_thirdparty/src"
@@ -110,13 +167,15 @@ mkdir -p maps
 autoreconf -i
 ```
 
-The map path below, in `--with-map-path`, follows the folder structure adopted in this guide. Replace it with the intended location of your GERLUMPH maps.
+The map path below, in `--with-map-path`, follows the folder structure adopted in this guide. Keep the trailing slash: the library concatenates this path with each map ID. Creating the directory does not download maps. To change this compiled-in path later, reconfigure and rebuild gerlumphpp.
+
+**macOS**
 
 ```bash
 CXXFLAGS="-g -O2 -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION" \
 ./configure \
   --prefix="$CONDA_PREFIX" \
-  --with-map-path="$HOME/molet_thirdparty/src/gerlumphpp/maps" \
+  --with-map-path="$HOME/molet_thirdparty/src/gerlumphpp/maps/" \
   --with-cfitsio="$CONDA_PREFIX" \
   --with-CCfits="$CONDA_PREFIX" \
   --with-png="$CONDA_PREFIX" \
@@ -127,7 +186,24 @@ make -j4
 make install
 ```
 
-### 6. Patch, build, and install vkl_lib
+**Linux (Bash for shell setup)**
+
+```bash
+CXXFLAGS="-g -O2" \
+./configure \
+  --prefix="$CONDA_PREFIX" \
+  --with-map-path="$HOME/molet_thirdparty/src/gerlumphpp/maps/" \
+  --with-cfitsio="$CONDA_PREFIX" \
+  --with-CCfits="$CONDA_PREFIX" \
+  --with-png="$CONDA_PREFIX" \
+  --with-fftw3="$CONDA_PREFIX" \
+  --enable-gpu=no
+
+make -j4
+make install
+```
+
+### 7. Patch, build, and install vkl_lib
 
 ```bash
 cd "$HOME/molet_thirdparty/src"
@@ -138,6 +214,8 @@ cd vkl_lib
 Apply the compatibility patches for CGAL linking and virtual destructors.
 
 > Apply these patches only once to a fresh checkout. The `sed -i ''` syntax used here is specific to macOS.
+
+**macOS**
 
 ```bash
 sed -i '' \
@@ -153,7 +231,25 @@ sed -i '' \
   include/*.hpp
 ```
 
+**Linux (Bash for shell setup)**
+
+```bash
+sed -i \
+  's/ac_new_LIBS+=" -lCGAL"/ac_new_LIBS+=""/' \
+  configure.ac
+
+sed -i \
+  's/libvkl_la_LIBADD = -lgfortran -lcfitsio -lCCfits -lgmp -lCGAL -ljsoncpp/libvkl_la_LIBADD = -lgfortran -lcfitsio -lCCfits -lgmp -ljsoncpp/' \
+  Makefile.am
+
+sed -i \
+  's/~Base/virtual ~Base/g' \
+  include/*.hpp
+```
+
 Configure, build, and install:
+
+**macOS**
 
 ```bash
 autoreconf -i
@@ -171,7 +267,25 @@ make -j4
 make install
 ```
 
-### 7. Patch, build, and install MOLET
+**Linux (Bash for shell setup)**
+
+```bash
+autoreconf -i
+
+CXXFLAGS="-g -O2" \
+./configure \
+  --prefix="$CONDA_PREFIX" \
+  --with-cfitsio="$CONDA_PREFIX" \
+  --with-CCfits="$CONDA_PREFIX" \
+  --with-gmp="$CONDA_PREFIX" \
+  --with-CGAL="$CONDA_PREFIX" \
+  --with-jsoncpp="$CONDA_PREFIX"
+
+make -j4
+make install
+```
+
+### 8. Patch, build, and install MOLET
 
 ```bash
 cd "$HOME/git_repos/molet"
@@ -180,6 +294,8 @@ cd "$HOME/git_repos/molet"
 Apply the patches for noise initialization, cleanup, virtual destructors, and CGAL linking.
 
 > Apply these patches only once to a fresh checkout.
+
+**macOS**
 
 ```bash
 sed -i '' \
@@ -203,13 +319,40 @@ sed -i '' \
   configure.ac
 ```
 
+**Linux (Bash for shell setup)**
+
+```bash
+sed -i \
+  's/~BaseNoise()/virtual ~BaseNoise()/g' \
+  instruments/include/*.hpp
+
+sed -i \
+  's/this->texp = texp;/this->texp = texp; this->noise_realization = nullptr;/g' \
+  instruments/src/noise.cpp
+
+sed -i \
+  's/delete(noise_realization);/if (noise_realization) { delete noise_realization; noise_realization = nullptr; }/g' \
+  instruments/src/noise.cpp
+
+sed -i \
+  's/-lCGAL //g' \
+  Makefile.am
+
+sed -i \
+  's/ac_new_LIBS+=" -lCGAL"/ac_new_LIBS+=""/' \
+  configure.ac
+```
+
 Configure, build, and install:
+
+**macOS**
 
 ```bash
 autoreconf -i
 
 CXXFLAGS="-g -O2 -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -DCGAL_DISABLE_ROUNDING_MATH_CHECK" \
 ./configure \
+  --with-jq="$CONDA_PREFIX" \
   --with-fftw3="$CONDA_PREFIX" \
   --with-cfitsio="$CONDA_PREFIX" \
   --with-CCfits="$CONDA_PREFIX" \
@@ -225,9 +368,34 @@ make -j4
 make install
 ```
 
-### 8. Configure runtime library paths
+**Linux (Bash for shell setup)**
+
+```bash
+autoreconf -i
+
+CXXFLAGS="-g -O2" \
+./configure \
+  --with-jq="$CONDA_PREFIX" \
+  --with-fftw3="$CONDA_PREFIX" \
+  --with-cfitsio="$CONDA_PREFIX" \
+  --with-CCfits="$CONDA_PREFIX" \
+  --with-gmp="$CONDA_PREFIX" \
+  --with-CGAL="$CONDA_PREFIX" \
+  --with-jsoncpp="$CONDA_PREFIX" \
+  --with-png="$CONDA_PREFIX" \
+  --with-sqlite3="$CONDA_PREFIX" \
+  --with-vkl="$CONDA_PREFIX" \
+  --with-gerlumph="$CONDA_PREFIX"
+
+make -j4
+make install
+```
+
+### 9. Configure runtime library paths
 
 Add the Conda and MOLET library directories to the compiled executables:
+
+**macOS**
 
 ```bash
 cd "$HOME/git_repos/molet/bin"
@@ -242,15 +410,33 @@ done
 cd ..
 ```
 
+**Linux**
+
+Skip this block. MOLET configure adds runtime paths for dependencies. If a shared library cannot be found, inspect the executable with `ldd`; for the paths in this guide, a session-level diagnostic fallback is:
+
+```bash
+export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:$HOME/git_repos/molet/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+```
+
 If a runtime path is already present, `install_name_tool` may report a duplicate-path error for that entry.
 
-### 9. Configure your shell and initialize the instrument database
+### 10. Configure your shell and initialize the instrument database
 
 Add MOLET to your shell's executable search path. Run the following append command once:
+
+**macOS**
 
 ```bash
 echo 'export PATH="$HOME/git_repos/molet/bin:$PATH"' >> "$HOME/.zshrc"
 source "$HOME/.zshrc"
+conda activate molet
+```
+
+**Linux (Bash for shell setup)**
+
+```bash
+echo 'export PATH="$HOME/git_repos/molet/bin:$PATH"' >> "$HOME/.bashrc"
+source "$HOME/.bashrc"
 conda activate molet
 ```
 
@@ -261,7 +447,7 @@ cd "$HOME/git_repos/molet"
 ./data/initialize_instruments.sh "$HOME/git_repos/molet"
 ```
 
-### 10. Run a test
+### 11. Run a test
 
 With the Conda environment active, run the provided test from the MOLET repository:
 
@@ -269,5 +455,48 @@ With the Conda environment active, run the provided test from the MOLET reposito
 conda activate molet
 cd "$HOME/git_repos/molet"
 
+jq --version
+./bin/check_get_map_path
 molet_driver tests/general/test_D/molet_input.json
 ```
+The map-path check must end in `/gerlumphpp/maps/`. The static test does not validate microlensing or GPU execution.
+
+## GERLUMPH maps
+
+The directory structure is:
+
+```text
+~/molet_thirdparty/src/gerlumphpp/maps/
+└── <map_id>/
+    ├── map.bin
+    └── mapmeta.dat
+```
+
+MOLET uses `data/gerlumph.db` to select map IDs from macro-image lensing properties. Download the required maps separately. See the [upstream map documentation](https://github.com/gvernard/molet#note-on-using-magnification-maps).
+
+The map path is compiled into gerlumphpp, not configured by a Python default. To change it, repeat the gerlumphpp configure command with the new absolute path and trailing slash, then run `make clean`, `make -j4`, and `make install`.
+
+Map-based microlensing requires a complete lens and compact-matter prescription, point source, instruments and observing times, intrinsic variability, and an explicit map-based `set_extrinsic_variability(...)` configuration. Omitting extrinsic variability when intrinsic variability is configured produces unity extrinsic curves, representing no microlensing.
+
+## Optional CUDA acceleration
+
+**macOS / Apple silicon:** keep `--enable-gpu=no`. CUDA cannot use the Apple GPU. CPU execution supports microlensing.
+
+**Linux / compatible NVIDIA GPU:** CUDA can accelerate map convolutions. Install a compatible NVIDIA driver, CUDA Toolkit (including `nvcc` and cuFFT development libraries), and a supported host compiler using the [NVIDIA Linux installation guide](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/contents.html). Compiler and library paths must be available during building and execution.
+
+Check the driver and compiler:
+
+```bash
+nvidia-smi
+nvcc --version
+```
+
+`nvidia-smi` alone does not confirm that the toolkit is installed. In the Linux gerlumphpp configure command, replace `--enable-gpu=no` with `--enable-gpu=yes`, then build and install. When changing an existing build, run `make clean` after configuration and before rebuilding.
+
+The [gerlumphpp README](https://github.com/gvernard/gerlumphpp#prerequisites) reports historical testing with CUDA 11.7 and a problem with 11.5. This does not guarantee compatibility with the newest toolkit or modern GPUs. Validate the selected GPU, driver, toolkit, compiler, and source combination with a map-based simulation; a static test does not exercise CUDA.
+
+## Build layout
+
+Packaging uses `pyproject.toml` and a small `setup.py` check for missing source modules. Python dependencies are installed by pip; native MOLET libraries are installed separately through the procedure above. Jupyter is available through the Conda environment or the optional `notebooks` extra (`pip install ".[notebooks]"`).
+
+The CGAL linking patches target header-only CGAL installations. Apply all source patches once to a fresh compatible checkout; upstream changes may require reviewing them.

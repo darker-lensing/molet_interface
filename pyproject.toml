@@ -20,4 +20,5 @@ Repository = "https://github.com/darker-lensing/molet_interface"
 MOLET = "https://github.com/gvernard/molet"
 
 [tool.setuptools]
-py-modules = ["molet_interface", "molet_auxiliary", "molet_tools", "molet_examples"]
+package-dir = {"" = "python"}
+py-modules = ["molet_interface", "molet_auxiliary"]

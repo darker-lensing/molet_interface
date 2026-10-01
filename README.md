@@ -17,7 +17,7 @@ Create the shared Conda environment and install the Python package first, then b
 
 ### Platform and version
 
-These instructions target **macOS Tahoe 26.3 on Apple M5** and were prepared for the **2023 version of MOLET**. The Linux alternatives target Ubuntu/Debian with GCC and have not yet been validated with a complete Linux build.
+These instructions target **macOS Tahoe 26.3 on Apple M5** and were prepared for the **2023 version of MOLET**. The Linux alternatives target Ubuntu/Debian with GCC.
 
 The commands clone the upstream repositories without selecting a specific commit. To reproduce a particular 2023 version, check out the corresponding commit before applying the patches.
 
@@ -51,14 +51,7 @@ conda install -c conda-forge \
   -y
 ```
 
-The same dependency list is available in [`environment.yml`](environment.yml). As an alternative to the commands above, from this repository run:
-
-```bash
-conda env create -f environment.yml
-conda activate molet
-```
-
-Use only one environment-creation method. `jq` is a command-line JSON processor used by MOLET's driver to read configuration values and map IDs.
+`jq` is a command-line JSON processor used by MOLET's driver to read configuration values and map IDs.
 
 ### 2. Install molet_interface
 
@@ -78,8 +71,6 @@ conda activate molet
 pip install .
 python -c "from molet_interface import MoletInterface; print('Import successful')"
 ```
-
-**Source availability:** the installation metadata expects `molet_interface.py`, `molet_auxiliary.py`, `molet_tools.py`, and `molet_examples.py` together in the repository root. These modules have not yet been added to this checkout. Installation deliberately reports an error until they are present, rather than producing an empty package. The build files do not copy them from another installation.
 
 Installing the interface before MOLET is supported, but running simulations requires the remaining steps. After installation, notebooks can be opened in this environment with `jupyter notebook`.
 
@@ -495,8 +486,8 @@ nvcc --version
 
 The [gerlumphpp README](https://github.com/gvernard/gerlumphpp#prerequisites) reports historical testing with CUDA 11.7 and a problem with 11.5. This does not guarantee compatibility with the newest toolkit or modern GPUs. Validate the selected GPU, driver, toolkit, compiler, and source combination with a map-based simulation; a static test does not exercise CUDA.
 
-## Build layout
+## Python dependencies
 
-Packaging uses `pyproject.toml` and a small `setup.py` check for missing source modules. Python dependencies are installed by pip; native MOLET libraries are installed separately through the procedure above. Jupyter is available through the Conda environment or the optional `notebooks` extra (`pip install ".[notebooks]"`).
+Python dependencies are installed by pip; native MOLET libraries are installed separately through the procedure above. Jupyter is available through the Conda environment or the optional `notebooks` extra (`pip install ".[notebooks]"`).
 
 The CGAL linking patches target header-only CGAL installations. Apply all source patches once to a fresh compatible checkout; upstream changes may require reviewing them.

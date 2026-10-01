@@ -13,7 +13,7 @@ This repository contains the Python interface. The original MOLET source code an
 
 ## Install MOLET
 
-Before using `molet_interface`, install MOLET and its required libraries. The following guide covers building the underlying MOLET software; installation and usage instructions for the Python package are provided separately.
+Before using `molet_interface`, install MOLET and its required libraries as described below. The following guide covers building the underlying MOLET software and the `molet_interface` Python package.
 
 ### Platform and version
 
@@ -24,8 +24,8 @@ The commands clone the upstream repositories without selecting a specific commit
 ### Before you begin
 
 - Install [Miniconda](https://www.anaconda.com/download) and ensure that `conda` is available in your terminal.
-- This guide assumes that MOLET is located at `~/git_repos/molet`. If you choose another location, update all corresponding paths.
-- Keep the `molet` Conda environment active whenever you build or run MOLET, including when using it through `MoletInterface`.
+- This guide locates MOLET at `~/git_repos/molet`. If you choose another location, update all corresponding paths.
+- Keep the `molet` Conda environment active whenever you build or run MOLET, including when using it through `molet_interface`.
 
 In a new terminal session, after the following installation, activate the environment with:
 
@@ -110,7 +110,7 @@ mkdir -p maps
 autoreconf -i
 ```
 
-The map path below follows the folder structure adopted in this guide. Replace it with the intended location of your GERLUMPH maps.
+The map path below, in `--with-map-path`, follows the folder structure adopted in this guide. Replace it with the intended location of your GERLUMPH maps.
 
 ```bash
 CXXFLAGS="-g -O2 -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION" \

@@ -1,0 +1,37 @@
+site_name: molet_interface
+site_description: Python interface for configuring and running MOLET
+site_url: https://darker-lensing.github.io/molet_interface/
+repo_url: https://github.com/darker-lensing/molet_interface
+repo_name: darker-lensing/molet_interface
+edit_uri: ''
+nav:
+  - Installation: index.md
+  - Python API: api.md
+  - Notebook example: examples.md
+  - Maintaining the documentation: documentation.md
+theme:
+  name: mkdocs
+  color_mode: auto
+  navigation_depth: 3
+hooks:
+  - docs_hooks.py
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [python]
+          options:
+            docstring_style: numpy
+            show_root_heading: true
+            show_source: false
+            members_order: source
+            separate_signature: true
+            filters: ["!^_(?!_init__)"]
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+watch:
+  - README.md
+  - python

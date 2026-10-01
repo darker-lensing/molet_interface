@@ -1,5 +1,7 @@
 # molet_interface
 
+**Documentation:** [Installation, Python API and examples](https://darker-lensing.github.io/molet_interface/).
+
 `molet_interface` provides the `MoletInterface` Python class for working with [MOLET](https://github.com/gvernard/molet) from Python.
 
 This repository contains the Python interface. The original MOLET source code and its documentation are maintained in the [upstream MOLET repository](https://github.com/gvernard/molet).

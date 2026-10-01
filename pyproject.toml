@@ -16,6 +16,7 @@ dependencies = ["numpy", "matplotlib", "astropy", "ipython"]
 notebooks = ["jupyter"]
 
 [project.urls]
+Documentation = "https://darker-lensing.github.io/molet_interface/"
 Repository = "https://github.com/darker-lensing/molet_interface"
 MOLET = "https://github.com/gvernard/molet"
 

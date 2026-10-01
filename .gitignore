@@ -222,3 +222,6 @@ __marimo__/
 
 # Notebook simulation results (including FITS, JSON, logs and plots)
 runs/
+
+# Generated documentation
+/site/

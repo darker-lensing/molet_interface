@@ -848,6 +848,67 @@ class MoletInterface:
         omit M_tot to retain its values (zero is also the native no-rescaling
         sentinel). Grid contents and scientific normalization require user checks.
 
+        Custom FITS compact convergence
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        Use type='custom' for an externally computed, spatially resolved mean
+        compact-matter distribution that need not follow a Gaussian or Sersic law.
+        Supply a two-dimensional image in the primary FITS HDU. Pixel values must
+        already represent dimensionless kappa_star, NOT stellar mass per pixel,
+        surface mass density in physical units, light intensity or magnification.
+        If starting from Sigma_compact, divide by Sigma_critical using consistent
+        units and the chosen lens/source geometry before writing the FITS.
+        This is a lens-plane convergence map, not a GERLUMPH magnification map.
+
+        Required pars entries (none has an inferred default):
+
+        - filepath: relative filename beneath the auxiliary input directory, e.g.
+          'kappa_star.fits' or 'maps/kappa_star.fits'. The native parser prepends
+          run/input_files/; do not supply an absolute filename here and do not
+          repeat the input_files/ prefix. Supply the original asset directory
+          through process(input_files=assets).
+        - Nx, Ny: positive integer grid dimensions along x and y. They must match
+          the FITS array; the expected NumPy arrangement is (Ny, Nx). The native
+          reader does not reliably reject dimension mismatches. For non-square
+          or asymmetric inputs, verify the returned map orientation explicitly.
+        - xmin, xmax, ymin, ymax: angular OUTER grid boundaries in arcsec, in the
+          same image-plane coordinate system as the lens model. Maxima must
+          exceed minima. Pixel centers lie at xmin+(j+0.5)*(xmax-xmin)/Nx and
+          ymin+(i+0.5)*(ymax-ymin)/Ny. This explicit geometry controls placement;
+          an astronomical FITS WCS is not used to register the map automatically.
+
+        Optional pars entries:
+
+        - interp: 'nearest', 'bilinear' or 'bicubic'. Omission uses the native
+          nearest-neighbor fallback. Interpolation acts on kappa_star; bicubic
+          interpolation can overshoot, so check positivity when using it.
+        - M_tot: omit it to preserve the FITS normalization. Zero is also the
+          native no-rescaling sentinel. A nonzero value invokes the reused
+          light-profile magnitude normalization with dummy ZP=0 and rescales
+          the map. It is neither a stellar mass nor a physically meaningful
+          observed magnitude for this direct compact-mass prescription.
+        - ZP and upsilon are accepted by the shared profile schema but are not
+          controls for this direct compact normalization: MOLET supplies dummy
+          ZP=0 and evaluates value(), not value_to_mass(). Leave them out here.
+
+        There are no x0/y0, q or pa parameters for a custom grid. Encode offsets,
+        ellipticity and orientation in the map and its coordinate boundaries.
+        Outside the supplied rectangle, the profile returns zero. Cover all image
+        positions of interest; an image outside it would receive no compact
+        contribution from this component. Multiple compact components in models
+        are summed, and each call replaces the whole list.
+
+        The interface checks parameter names, dimensions as integers, ordered
+        bounds and supported interpolation names. It does not read this FITS to
+        certify its HDU, dimensions, orientation, finite/nonnegative pixels or
+        consistency with the macro model. In particular, verify physically that
+        0 <= kappa_star <= kappa where relevant. Inspect lens_kappa_star_super.fits
+        and k_star/s in multiple_images.json after execution. These compact-mass
+        products are computed by the backend when point_source is present.
+
+        Keep original assets outside run_dir: process empties run_dir before a
+        new run, copies assets into run/input_files, and removes that copy after
+        success by default. The original asset directory is preserved.
+
         Two exclusive prescriptions per lens
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         With point_source present, MOLET requires exactly one of:
@@ -899,6 +960,24 @@ class MoletInterface:
         ...              'r_eff': 1.0, 'n': 4.0, 'i_eff': 0.1}
         ... }]) is sim
         True
+
+        Configure an existing square FITS convergence map. This example builds
+        input only; it does not create the FITS or launch an incomplete system:
+
+        >>> grid = MoletInterface().set_lens_redshift(redshift=0.77)
+        >>> grid.set_compact_mass_model(index=0, models=[{
+        ...     'type': 'custom',
+        ...     'pars': {'filepath': 'kappa_star.fits', 'Nx': 256, 'Ny': 256,
+        ...              'xmin': -2.0, 'xmax': 2.0, 'ymin': -2.0, 'ymax': 2.0,
+        ...              'interp': 'bilinear'}
+        ... }]) is grid
+        True
+
+        For a FITS stored at assets/kappa_star.fits, after configuring the rest
+        of the system call grid.process(run_dir=run_dir, input_files=assets).
+        With Astropy, a precomputed array can be saved using
+        fits.PrimaryHDU(kappa_star.astype('float32')).writeto(path).
+        Astropy is needed only to create/read FITS in Python, not by this setter.
 
         The example values are illustrative, not a calibrated stellar-mass prior.
         """

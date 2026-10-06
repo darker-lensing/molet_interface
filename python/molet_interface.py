@@ -961,20 +961,20 @@ class MoletInterface:
         ... }]) is sim
         True
 
-        Configure an existing square FITS convergence map. This example builds
-        input only; it does not create the FITS or launch an incomplete system:
+        Configure an existing square FITS convergence map on your existing sim.
+        The lens at index=0 must already exist, with no mass-to-light conversion.
+        This example only sets input; it does not create the FITS or run MOLET:
 
-        >>> grid = MoletInterface().set_lens_redshift(redshift=0.77)
-        >>> grid.set_compact_mass_model(index=0, models=[{
+        >>> sim.set_compact_mass_model(index=0, models=[{
         ...     'type': 'custom',
         ...     'pars': {'filepath': 'kappa_star.fits', 'Nx': 256, 'Ny': 256,
         ...              'xmin': -2.0, 'xmax': 2.0, 'ymin': -2.0, 'ymax': 2.0,
         ...              'interp': 'bilinear'}
-        ... }]) is grid
+        ... }]) is sim
         True
 
         For a FITS stored at assets/kappa_star.fits, after configuring the rest
-        of the system call grid.process(run_dir=run_dir, input_files=assets).
+        of the system call sim.process(run_dir=run_dir, input_files=assets).
         With Astropy, a precomputed array can be saved using
         fits.PrimaryHDU(kappa_star.astype('float32')).writeto(path).
         Astropy is needed only to create/read FITS in Python, not by this setter.
